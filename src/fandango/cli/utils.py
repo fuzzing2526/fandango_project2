@@ -181,7 +181,7 @@ set_program_command([{arg_list}])
     if "client" in args and args.client:
         # Act as client
         extra_defs += f"""
-class Client(ConnectParty):
+class Client(NetworkParty):
     def __init__(self):
         super().__init__(
             "{args.client}",
@@ -190,7 +190,7 @@ class Client(ConnectParty):
         )
         self.start()
 
-class Server(ConnectParty):
+class Server(NetworkParty):
     def __init__(self):
         super().__init__(
             "{args.client}",
@@ -203,7 +203,7 @@ class Server(ConnectParty):
     if "server" in args and args.server:
         # Act as server
         extra_defs += f"""
-class Client(ConnectParty):
+class Client(NetworkParty):
     def __init__(self):
         super().__init__(
             "{args.server}",
@@ -212,7 +212,7 @@ class Client(ConnectParty):
         )
         self.start()
 
-class Server(ConnectParty):
+class Server(NetworkParty):
     def __init__(self):
         super().__init__(
             "{args.server}",
@@ -322,7 +322,6 @@ def parse_file(
 
     if last_tree is not None:
         # check if any tree matched the grammar and failed constraints
-        grammar.populate_sources(last_tree)
         failed_constraints = [
             c.format_as_spec() for c in constraints if not c.check(last_tree)
         ]
