@@ -93,7 +93,7 @@ class Value(GeneticBase):
         :param Optional[dict[str, Any]] local_variables: Local variables to use in the evaluation.
         :return ValueFitness: The fitness of the tree.
         """
-        tree_hash = self.get_hash(tree.get_root(), scope, local_variables)
+        tree_hash = self.get_hash(tree, scope, local_variables)
         # If the fitness has already been calculated, return the cached value
         if tree_hash in self.cache:
             return self.cache[tree_hash]
