@@ -232,21 +232,21 @@ class PacketSelector:
         uncovered_paths = self._uncovered_paths()
         protocol_msg_symbols = set(map(lambda x: x.symbol, self.protocol_msg_symbols))
         for list_idx, path in enumerate(list(uncovered_paths)):
-            first_msg_symbol_idx = len(path)
-            in_state_area = False
-            for path_idx, symbol in enumerate(path):
-                # Make sure that parts of the k-path are in the state area of the grammar. Ignore otherwise
-                if not in_state_area:
-                    if symbol in self.state_grammar_symbols:
-                        in_state_area = True
-                    else:
-                        first_msg_symbol_idx = 0
+            path_last_state_cutoff = len(path) + 1
+            in_state_area = True
+            # Make sure that parts of the k-path are in the state area of the grammar. Ignore otherwise
+            if len(path) > 0:
+                first_symbol = path[0]
+                if first_symbol not in self.state_grammar_symbols:
+                    in_state_area = False
+                    path_last_state_cutoff = 0
+            if in_state_area:
+                for path_idx, symbol in enumerate(path):
+                    # Truncate k-path at first occurence of a message symbol
+                    if symbol in protocol_msg_symbols:
+                        path_last_state_cutoff = path_idx + 1
                         break
-                # Truncate k-path at first occurence of a message symbol
-                if symbol in protocol_msg_symbols:
-                    first_msg_symbol_idx = path_idx
-                    break
-            remaining_path = path[:first_msg_symbol_idx+1]
+            remaining_path = path[:path_last_state_cutoff]
             uncovered_paths[list_idx] = remaining_path
         uncovered_paths = list(filter(lambda x: len(x) > 0, uncovered_paths))
         if len(uncovered_paths) == 0:
