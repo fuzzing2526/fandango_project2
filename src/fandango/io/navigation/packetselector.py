@@ -32,6 +32,7 @@ class PacketSelector:
         self.coverage_goal = CoverageGoal.STATE_INPUTS
         self.grammar = grammar
         self.state_grammar_symbols = self._get_state_grammar_symbols(self.start_symbol)
+        self.protocol_msg_symbols = self.grammar.get_protocol_messages(self.start_symbol)
         self.io_instance = io_instance
         self.msg_power_schedule = PowerScheduleCoverage()
         self.state_path_power_schedule = PowerScheduleKPath()
@@ -229,13 +230,23 @@ class PacketSelector:
 
     def _select_next_target(self) -> KPath:
         uncovered_paths = self._uncovered_paths()
+        protocol_msg_symbols = set(map(lambda x: x.symbol, self.protocol_msg_symbols))
         for list_idx, path in enumerate(list(uncovered_paths)):
-            remaining_path = path
-            for path_idx, symbol in enumerate(path[::-1]):
-                if symbol in self.state_grammar_symbols:
+            first_msg_symbol_idx = len(path)
+            in_state_area = False
+            for path_idx, symbol in enumerate(path):
+                # Make sure that parts of the k-path are in the state area of the grammar. Ignore otherwise
+                if not in_state_area:
+                    if symbol in self.state_grammar_symbols:
+                        in_state_area = True
+                    else:
+                        first_msg_symbol_idx = 0
+                        break
+                # Truncate k-path at first occurence of a message symbol
+                if symbol in protocol_msg_symbols:
+                    first_msg_symbol_idx = path_idx
                     break
-                last_idx = len(path) - path_idx - 1
-                remaining_path = remaining_path[:last_idx]
+            remaining_path = path[:first_msg_symbol_idx+1]
             uncovered_paths[list_idx] = remaining_path
         uncovered_paths = list(filter(lambda x: len(x) > 0, uncovered_paths))
         if len(uncovered_paths) == 0:
